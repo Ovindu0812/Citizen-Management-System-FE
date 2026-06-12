@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login | Citizen Portal</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <div class="auth-wrapper">
+    <div class="auth-container glass-panel animate-fade-in">
+      
+      <!-- Auth Header -->
+      <div class="auth-header">
+        <div class="auth-logo">
+          <!-- Shield/Government Icon -->
+          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path>
+          </svg>
+        </div>
+        <h1 class="auth-title">Citizen Portal</h1>
+        <p class="auth-subtitle">Citizen Management & Complaint System</p>
+      </div>
+
+      <!-- Auth Tabs -->
+      <div class="auth-tabs">
+        <div class="auth-tab active" id="tab-login" onclick="switchTab('login')">Log In</div>
+        <div class="auth-tab" id="tab-register" onclick="switchTab('register')">Register</div>
+      </div>
+
+      <!-- Login Form -->
+      <form id="login-form" class="auth-form active" onsubmit="handleLogin(event)">
+        <div class="form-group">
+          <label for="login-id">Citizen ID or Email</label>
+          <input type="text" id="login-id" class="input-control" placeholder="Enter your ID or email" required>
+        </div>
+        
+        <div class="form-group">
+          <label for="login-password">Password</label>
+          <div class="password-input-wrapper">
+            <input type="password" id="login-password" class="input-control" placeholder="••••••••" required>
+            <button type="button" class="password-toggle" onclick="togglePasswordVisibility('login-password', this)">
+              <svg class="eye-icon" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" width="20" height="20" xmlns="http://www.w3.org/2000/svg">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                <path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+              </svg>
+            </button>
+          </div>
+        </div>
+
+        <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 1.5rem;">
+          Sign In
+          <svg fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24" width="16" height="16" xmlns="http://www.w3.org/2000/svg">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3"></path>
+          </svg>
+        </button>
+      </form>
+
+      <!-- Register Form -->
+      <form id="register-form" class="auth-form" onsubmit="handleRegister(event)">
+        <div class="form-group">
+          <label for="reg-name">Full Name</label>
+          <input type="text" id="reg-name" class="input-control" placeholder="John Doe" required>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="reg-nic">NIC Number</label>
+            <input type="text" id="reg-nic" class="input-control" placeholder="123456789V / 200012345678" required>
+          </div>
+          <div class="form-group">
+            <label for="reg-email">Email Address</label>
+            <input type="email" id="reg-email" class="input-control" placeholder="john@example.com" required>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="reg-province">Province</label>
+            <select id="reg-province" class="input-control" required style="appearance: none; background-image: url('data:image/svg+xml;charset=utf-8,%3Csvg xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22 fill%3D%22none%22 viewBox%3D%220 0 24 24%22 stroke%3D%22%239ca3af%22 stroke-width%3D%222%22%3E%3Cpath stroke-linecap%3D%22round%22 stroke-linejoin%3D%22round%22 d%3D%22M19 9l-7 7-7-7%22%2F%3E%3C%2Fsvg%3E'); background-repeat: no-repeat; background-position: right 0.75rem center; background-size: 1.25rem;">
+              <option value="" disabled selected>Select Province</option>
+              <option value="Central">Central</option>
+              <option value="Eastern">Eastern</option>
+              <option value="North Central">North Central</option>
+              <option value="Northern">Northern</option>
+              <option value="North Western">North Western</option>
+              <option value="Sabaragamuwa">Sabaragamuwa</option>
+              <option value="Southern">Southern</option>
+              <option value="Uva">Uva</option>
+              <option value="Western">Western</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="reg-district">District</label>
+            <select id="reg-district" class="input-control" required style="appearance: none; background-image: url('data:image/svg+xml;charset=utf-8,%3Csvg xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22 fill%3D%22none%22 viewBox%3D%220 0 24 24%22 stroke%3D%22%239ca3af%22 stroke-width%3D%222%22%3E%3Cpath stroke-linecap%3D%22round%22 stroke-linejoin%3D%22round%22 d%3D%22M19 9l-7 7-7-7%22%2F%3E%3C%2Fsvg%3E'); background-repeat: no-repeat; background-position: right 0.75rem center; background-size: 1.25rem;">
+              <option value="" disabled selected>Select District</option>
+              <option value="Colombo">Colombo</option>
+              <option value="Gampaha">Gampaha</option>
+              <option value="Kalutara">Kalutara</option>
+              <option value="Kandy">Kandy</option>
+              <option value="Matale">Matale</option>
+              <option value="Nuwara Eliya">Nuwara Eliya</option>
+              <option value="Galle">Galle</option>
+              <option value="Matara">Matara</option>
+              <option value="Hambantota">Hambantota</option>
+              <option value="Jaffna">Jaffna</option>
+              <option value="Kilinochchi">Kilinochchi</option>
+              <option value="Mannar">Mannar</option>
+              <option value="Vavuniya">Vavuniya</option>
+              <option value="Mullaitivu">Mullaitivu</option>
+              <option value="Batticaloa">Batticaloa</option>
+              <option value="Ampara">Ampara</option>
+              <option value="Trincomalee">Trincomalee</option>
+              <option value="Kurunegala">Kurunegala</option>
+              <option value="Puttalam">Puttalam</option>
+              <option value="Anuradhapura">Anuradhapura</option>
+              <option value="Polonnaruwa">Polonnaruwa</option>
+              <option value="Badulla">Badulla</option>
+              <option value="Moneragala">Moneragala</option>
+              <option value="Ratnapura">Ratnapura</option>
+              <option value="Kegalle">Kegalle</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="reg-birthday">Birthday</label>
+            <input type="date" id="reg-birthday" class="input-control" required>
+          </div>
+          <div class="form-group">
+            <label for="reg-phone">Phone Number</label>
+            <input type="tel" id="reg-phone" class="input-control" placeholder="+94 77 123 4567" required>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="reg-password">Password</label>
+          <div class="password-input-wrapper">
+            <input type="password" id="reg-password" class="input-control" placeholder="••••••••" required>
+            <button type="button" class="password-toggle" onclick="togglePasswordVisibility('reg-password', this)">
+              <svg class="eye-icon" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" width="20" height="20" xmlns="http://www.w3.org/2000/svg">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                <path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+              </svg>
+            </button>
+          </div>
+        </div>
+
+        <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 1rem;">
+          Create Account
+          <svg fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24" width="16" height="16" xmlns="http://www.w3.org/2000/svg">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"></path>
+          </svg>
+        </button>
+      </form>
+
+    </div>
+  </div>
+
+  <!-- Toast Notification Container -->
+  <div id="toast-container" class="toast-container"></div>
+
+  <script src="auth.js?v=2"></script>
+</body>
+</html>

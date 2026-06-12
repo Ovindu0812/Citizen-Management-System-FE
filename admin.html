@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Dashboard | Citizen Portal</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <div class="app-container">
+    
+    <!-- Sidebar Navigation -->
+    <aside class="sidebar">
+      <div class="sidebar-top">
+        <div class="brand">
+          <div class="brand-icon">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path>
+            </svg>
+          </div>
+          <span class="brand-title">Admin CMS</span>
+        </div>
+
+        <nav>
+          <ul class="nav-menu">
+            <li class="nav-item active" id="nav-dashboard">
+              <a href="#" onclick="switchSection('dashboard')">
+                <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" width="18" height="18" xmlns="http://www.w3.org/2000/svg">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v4a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v4a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v4a2 2 0 01-2 2H6a2 2 0 01-2-2v-4zM14 16a2 2 0 012-2h2a2 2 0 012 2v4a2 2 0 01-2 2h-2a2 2 0 01-2-2v-4z"></path>
+                </svg>
+                Overview
+              </a>
+            </li>
+            <li class="nav-item" id="nav-history">
+              <a href="#complaints-history-section" onclick="scrollToElement('complaints-history-section')">
+                <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" width="18" height="18" xmlns="http://www.w3.org/2000/svg">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"></path>
+                </svg>
+                Manage Complaints
+              </a>
+            </li>
+            <li class="nav-item" id="nav-users">
+              <a href="#users-section" onclick="scrollToElement('users-section')">
+                <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" width="18" height="18" xmlns="http://www.w3.org/2000/svg">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path>
+                </svg>
+                Citizen Directory
+              </a>
+            </li>
+            <li class="nav-item" id="nav-reports">
+              <a href="#reports-section" onclick="scrollToElement('reports-section')">
+                <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" width="18" height="18" xmlns="http://www.w3.org/2000/svg">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                </svg>
+                Reports
+              </a>
+            </li>
+          </ul>
+        </nav>
+      </div>
+
+      <!-- User Profile Box -->
+      <div class="user-profile">
+        <div class="user-avatar" id="avatar-initials">AD</div>
+        <div class="user-details">
+          <span class="user-name" id="profile-name">Administrator</span>
+          <span class="user-citizen-id" id="profile-id">admin@example.com</span>
+        </div>
+        <button class="logout-btn" onclick="logoutUser()" title="Logout">
+          <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" width="20" height="20" xmlns="http://www.w3.org/2000/svg">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path>
+          </svg>
+        </button>
+      </div>
+    </aside>
+
+    <!-- Main Content Area -->
+    <main class="main-content">
+      
+      <!-- Top Dashboard Header -->
+      <header class="dashboard-header">
+        <div class="welcome-msg">
+          <h1 id="welcome-text">Welcome, Administrator</h1>
+          <p>Manage, track, and resolve public issues.</p>
+        </div>
+      </header>
+
+      <!-- Stats Grid -->
+      <div class="stats-grid">
+        <div class="stat-card glass-panel animate-fade-in" style="animation-delay: 0.1s;">
+          <div class="stat-info">
+            <span class="stat-label">Total Submitted</span>
+            <span class="stat-value" id="stats-total">0</span>
+          </div>
+          <div class="stat-icon stat-icon-total">
+            <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" width="24" height="24" xmlns="http://www.w3.org/2000/svg">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+            </svg>
+          </div>
+        </div>
+
+        <div class="stat-card glass-panel animate-fade-in" style="animation-delay: 0.2s;">
+          <div class="stat-info">
+            <span class="stat-label">Pending Review</span>
+            <span class="stat-value" id="stats-pending">0</span>
+          </div>
+          <div class="stat-icon stat-icon-pending">
+            <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" width="24" height="24" xmlns="http://www.w3.org/2000/svg">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+            </svg>
+          </div>
+        </div>
+
+        <div class="stat-card glass-panel animate-fade-in" style="animation-delay: 0.3s;">
+          <div class="stat-info">
+            <span class="stat-label">In Progress</span>
+            <span class="stat-value" id="stats-progress">0</span>
+          </div>
+          <div class="stat-icon stat-icon-progress">
+            <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" width="24" height="24" xmlns="http://www.w3.org/2000/svg">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path>
+              <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+            </svg>
+          </div>
+        </div>
+
+        <div class="stat-card glass-panel animate-fade-in" style="animation-delay: 0.4s;">
+          <div class="stat-info">
+            <span class="stat-label">Resolved Issues</span>
+            <span class="stat-value" id="stats-resolved">0</span>
+          </div>
+          <div class="stat-icon stat-icon-resolved">
+            <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" width="24" height="24" xmlns="http://www.w3.org/2000/svg">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+            </svg>
+          </div>
+        </div>
+      </div>
+
+      <!-- Dashboard Primary Sections -->
+      <div class="dashboard-sections">
+
+        <!-- History Board -->
+        <section id="complaints-history-section" class="section-card glass-panel animate-fade-in" style="animation-delay: 0.6s; grid-column: span 2;">
+          <h2 class="section-card-title">
+            <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" width="20" height="20" xmlns="http://www.w3.org/2000/svg">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+            </svg>
+            All Complaints
+          </h2>
+
+          <div class="filter-bar">
+            <!-- Search bar -->
+            <div class="search-wrapper">
+              <svg class="search-icon" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" width="18" height="18" xmlns="http://www.w3.org/2000/svg">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+              </svg>
+              <input type="text" id="complaint-search" class="input-control" placeholder="Search by title, location or ID..." oninput="applyFilters()">
+            </div>
+
+            <!-- Status chips -->
+            <div class="status-filters">
+              <button class="filter-chip active" id="filter-all" onclick="filterByStatus('all')">All</button>
+              <button class="filter-chip" id="filter-pending" onclick="filterByStatus('pending')">Pending</button>
+              <button class="filter-chip" id="filter-progress" onclick="filterByStatus('in progress')">In Progress</button>
+              <button class="filter-chip" id="filter-resolved" onclick="filterByStatus('resolved')">Resolved</button>
+            </div>
+          </div>
+
+          <!-- Dynamic Complaint Cards List -->
+          <div class="complaints-list" id="complaints-list-container">
+            <div class="empty-state">
+              <svg fill="none" stroke="currentColor" stroke-width="1" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M20.25 7.5l-.625 10.632a2.25 2.25 0 01-2.247 2.118H6.622a2.25 2.25 0 01-2.247-2.118L3.75 7.5m6 4.125l2.25 2.25m0 0l2.25 2.25m-2.25-2.25l-2.25 2.25m2.25-2.25l2.25-2.25M3.75 7.5L5.625 3.75A1.875 1.875 0 017.375 2.5h9.25c.783 0 1.482.453 1.785 1.176L20.25 7.5"></path>
+              </svg>
+              <p>No complaints submitted yet.</p>
+            </div>
+          </div>
+        </section>
+
+        <!-- Citizen Directory Section -->
+        <section id="users-section" class="section-card glass-panel animate-fade-in" style="animation-delay: 0.5s; display: none; grid-column: span 2;">
+          <h2 class="section-card-title">
+            <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" width="20" height="20" xmlns="http://www.w3.org/2000/svg">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path>
+            </svg>
+            Citizen Directory
+          </h2>
+          
+          <div style="overflow-x: auto; margin-top: 1rem;">
+            <table style="width: 100%; border-collapse: collapse; text-align: left; color: var(--text-secondary);">
+              <thead>
+                <tr style="border-bottom: 1px solid rgba(255,255,255,0.1);">
+                  <th style="padding: 1rem; color: var(--text-primary);">Name</th>
+                  <th style="padding: 1rem; color: var(--text-primary);">NIC</th>
+                  <th style="padding: 1rem; color: var(--text-primary);">Email</th>
+                  <th style="padding: 1rem; color: var(--text-primary);">Phone</th>
+                  <th style="padding: 1rem; color: var(--text-primary);">Location</th>
+                </tr>
+              </thead>
+              <tbody id="users-table-body">
+                <!-- User rows injected here -->
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <!-- Reports Section -->
+        <section id="reports-section" class="section-card glass-panel animate-fade-in" style="animation-delay: 0.5s; display: none; grid-column: span 2;">
+          <h2 class="section-card-title">
+            <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" width="20" height="20" xmlns="http://www.w3.org/2000/svg">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+            </svg>
+            Daily Reports
+          </h2>
+          
+          <button type="button" class="btn btn-primary" onclick="generateReport()">
+            Generate Daily Summary Report
+          </button>
+
+          <div id="report-output" style="margin-top: 2rem; display: none;">
+            <h3 style="margin-bottom: 1rem;">Report for <span id="report-date"></span></h3>
+            <div class="drawer-meta-grid">
+              <div class="drawer-meta-item">
+                <span class="drawer-section-label">New Complaints Today</span>
+                <div class="drawer-meta-val" id="report-new">0</div>
+              </div>
+              <div class="drawer-meta-item">
+                <span class="drawer-section-label">Resolved Today</span>
+                <div class="drawer-meta-val" id="report-resolved">0</div>
+              </div>
+              <div class="drawer-meta-item">
+                <span class="drawer-section-label">Currently In Progress</span>
+                <div class="drawer-meta-val" id="report-progress">0</div>
+              </div>
+              <div class="drawer-meta-item">
+                <span class="drawer-section-label">Currently Pending</span>
+                <div class="drawer-meta-val" id="report-pending">0</div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+      </div>
+    </main>
+  </div>
+
+  <!-- Detail view slide-in drawer -->
+  <div class="drawer-overlay" id="drawer-overlay" onclick="closeDrawer()"></div>
+  
+  <div class="drawer" id="complaint-drawer">
+    <div class="drawer-header">
+      <div class="drawer-title-area">
+        <span class="drawer-id" id="drawer-complaint-id"></span>
+        <h3 class="drawer-title" id="drawer-complaint-title"></h3>
+      </div>
+      <button class="btn-icon" onclick="closeDrawer()" title="Close details">
+        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" width="20" height="20" xmlns="http://www.w3.org/2000/svg">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"></path>
+        </svg>
+      </button>
+    </div>
+    
+    <div class="drawer-body">
+      
+      <!-- Meta Information -->
+      <div class="drawer-meta-grid">
+        <div class="drawer-meta-item">
+          <span class="drawer-section-label">Category</span>
+          <div class="drawer-meta-val" id="drawer-category"></div>
+        </div>
+        <div class="drawer-meta-item">
+          <span class="drawer-section-label">Urgency</span>
+          <div class="drawer-meta-val" id="drawer-urgency" style="margin-top: 0.35rem;"></div>
+        </div>
+        <div class="drawer-meta-item">
+          <span class="drawer-section-label">Lodge Date</span>
+          <div class="drawer-meta-val" id="drawer-date"></div>
+        </div>
+        <div class="drawer-meta-item">
+          <span class="drawer-section-label">Location</span>
+          <div class="drawer-meta-val" id="drawer-location"></div>
+        </div>
+        <div class="drawer-meta-item" style="grid-column: span 2; margin-top: 0.5rem; padding-top: 0.5rem; border-top: 1px solid rgba(255,255,255,0.1);">
+          <span class="drawer-section-label">Submitted By</span>
+          <div class="drawer-meta-val" id="drawer-submitted-by"></div>
+        </div>
+      </div>
+
+      <!-- Description -->
+      <div class="drawer-section">
+        <span class="drawer-section-label">Narrative / Description</span>
+        <div class="drawer-content-box" id="drawer-desc"></div>
+      </div>
+
+      <!-- Attached File Preview -->
+      <div class="drawer-section" id="drawer-attachment-section" style="display: none;">
+        <span class="drawer-section-label">Attachments</span>
+        <div class="drawer-content-box" id="drawer-attachment-box"></div>
+      </div>
+
+      <!-- Admin Controls -->
+      <div class="drawer-section">
+        <span class="drawer-section-label">Update Status</span>
+        <select id="admin-status-update" class="input-control" style="appearance: none; background-image: url('data:image/svg+xml;charset=utf-8,%3Csvg xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22 fill%3D%22none%22 viewBox%3D%220 0 24 24%22 stroke%3D%22%239ca3af%22 stroke-width%3D%222%22%3E%3Cpath stroke-linecap%3D%22round%22 stroke-linejoin%3D%22round%22 d%3D%22M19 9l-7 7-7-7%22%2F%3E%3C%2Fsvg%3E'); background-repeat: no-repeat; background-position: right 0.75rem center; background-size: 1.25rem;">
+          <option value="pending">Pending</option>
+          <option value="under review">Under Review</option>
+          <option value="in progress">In Progress</option>
+          <option value="resolved">Resolved</option>
+        </select>
+      </div>
+
+      <div class="drawer-section">
+        <span class="drawer-section-label">Official Resolution Remarks</span>
+        <textarea id="admin-comment-update" class="input-control textarea" placeholder="Add official remarks here..."></textarea>
+      </div>
+
+      <button type="button" class="btn btn-primary" onclick="saveComplaintUpdates()" style="margin-top: 1rem;">
+        Save Changes
+      </button>
+
+    </div>
+  </div>
+
+  <!-- Toast Notification Container -->
+  <div id="toast-container" class="toast-container"></div>
+
+  <script src="admin.js"></script>
+</body>
+</html>
