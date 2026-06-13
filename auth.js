@@ -1,32 +1,5 @@
-// Database seed keys
-const USER_DB_KEY = 'cms_citizens';
 const SESSION_KEY = 'cms_active_session';
-
-// Default Test Citizen Account
-const DEFAULT_CITIZEN = {
-  name: "Jane Smith",
-  nic: "200012345678",
-  email: "citizen@example.com",
-  province: "Western",
-  district: "Colombo",
-  birthday: "2000-01-01",
-  phone: "+94 77 123 4567",
-  password: "password123"
-};
-
-// Initialize database with default citizen if empty
-function initDb() {
-  let citizens = localStorage.getItem(USER_DB_KEY);
-  if (!citizens) {
-    localStorage.setItem(USER_DB_KEY, JSON.stringify([DEFAULT_CITIZEN]));
-  }
-}
-
-const ADMIN_ACCOUNT = {
-  email: "admin@example.com",
-  password: "admin123",
-  role: "admin"
-};
+const API_BASE_URL = 'http://localhost:8080/api/auth';
 
 // Redirect if already authenticated
 function checkExistingSession() {
@@ -34,9 +7,9 @@ function checkExistingSession() {
   if (session) {
     const user = JSON.parse(session);
     if (user.role === 'admin') {
-      window.location.href = 'admin.html';
+      window.location.href = 'http://localhost:8000/admin.html';
     } else {
-      window.location.href = 'index.html';
+      window.location.href = 'http://localhost:8000/index.html';
     }
   }
 }
@@ -68,7 +41,6 @@ function togglePasswordVisibility(fieldId, button) {
   
   if (field.type === 'password') {
     field.type = 'text';
-    // Change eye icon to "slashed" or dimmed
     icon.style.opacity = '0.5';
   } else {
     field.type = 'password';
@@ -109,8 +81,8 @@ function showToast(message, type = 'info') {
   }, 4000);
 }
 
-// Log In handler
-function handleLogin(event) {
+// Log In handler connecting to PHP Backend
+async function handleLogin(event) {
   event.preventDefault();
   
   const idOrEmail = document.getElementById('login-id').value.trim();
@@ -121,53 +93,43 @@ function handleLogin(event) {
     return;
   }
 
-  if (idOrEmail.toLowerCase() === ADMIN_ACCOUNT.email && password === ADMIN_ACCOUNT.password) {
-    showToast('Admin Login successful! Redirecting...', 'success');
-    
-    // Save active session
-    const sessionUser = {
-      name: "Administrator",
-      email: ADMIN_ACCOUNT.email,
-      role: ADMIN_ACCOUNT.role
-    };
-    localStorage.setItem(SESSION_KEY, JSON.stringify(sessionUser));
+  try {
+    console.log(`[API Request] POST ${API_BASE_URL}/login`, { idOrEmail, password });
+    const response = await fetch(`${API_BASE_URL}/login`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ idOrEmail, password })
+    });
 
-    setTimeout(() => {
-      window.location.href = 'admin.html';
-    }, 1200);
-    return;
-  }
+    const result = await response.json();
+    console.log(`[API Response] Status: ${response.status}`, result);
 
-  const citizens = JSON.parse(localStorage.getItem(USER_DB_KEY) || '[]');
-  
-  // Find matching user (case insensitive on email/NIC)
-  const matchedUser = citizens.find(
-    c => (c.email?.toLowerCase() === idOrEmail.toLowerCase() || c.nic?.toLowerCase() === idOrEmail.toLowerCase()) && c.password === password
-  );
+    if (response.ok) {
+      showToast('Login successful! Redirecting...', 'success');
+      
+      // Save active session using the user object returned from PHP backend
+      localStorage.setItem(SESSION_KEY, JSON.stringify(result.user));
 
-  if (matchedUser) {
-    showToast('Login successful! Redirecting...', 'success');
-    
-    // Save active session
-    const sessionUser = {
-      name: matchedUser.name,
-      email: matchedUser.email,
-      nic: matchedUser.nic,
-      phone: matchedUser.phone,
-      role: "citizen"
-    };
-    localStorage.setItem(SESSION_KEY, JSON.stringify(sessionUser));
-
-    setTimeout(() => {
-      window.location.href = 'index.html';
-    }, 1200);
-  } else {
-    showToast('Invalid ID/Email or password', 'error');
+      setTimeout(() => {
+        if (result.user.role === 'admin') {
+          window.location.href = 'http://localhost:8000/admin.html';
+        } else {
+          window.location.href = 'http://localhost:8000/index.html';
+        }
+      }, 1200);
+    } else {
+      showToast(result.message || 'Invalid ID/Email or password', 'error');
+    }
+  } catch (error) {
+    console.error("Login Error:", error);
+    showToast('Network error! Ensure your backend is running.', 'error');
   }
 }
 
-// Registration handler
-function handleRegister(event) {
+// Registration handler connecting to PHP Backend
+async function handleRegister(event) {
   event.preventDefault();
 
   const name = document.getElementById('reg-name').value.trim();
@@ -189,43 +151,38 @@ function handleRegister(event) {
     return;
   }
 
-  const citizens = JSON.parse(localStorage.getItem(USER_DB_KEY) || '[]');
+  const payload = { name, nic, email, province, district, birthday, phone, password };
 
-  // Check uniqueness of NIC and Email
-  const nicExists = citizens.some(c => c.nic?.toLowerCase() === nic.toLowerCase());
-  const emailExists = citizens.some(c => c.email?.toLowerCase() === email.toLowerCase());
+  try {
+    console.log(`[API Request] POST ${API_BASE_URL}/register`, payload);
+    const response = await fetch(`${API_BASE_URL}/register`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(payload)
+    });
 
-  if (nicExists) {
-    showToast('An account with this NIC already exists', 'error');
-    return;
+    const result = await response.json();
+    console.log(`[API Response] Status: ${response.status}`, result);
+
+    if (response.ok) {
+      showToast('Account created successfully! Please log in.', 'success');
+      
+      // Switch back to login tab so user can log in
+      setTimeout(() => {
+        document.getElementById('login-id').value = email;
+        switchTab('login');
+      }, 1500);
+
+    } else {
+      showToast(result.message || 'Registration failed', 'error');
+    }
+  } catch (error) {
+    console.error("Registration Error:", error);
+    showToast('Network error! Ensure your backend is running.', 'error');
   }
-  if (emailExists) {
-    showToast('An account with this Email already exists', 'error');
-    return;
-  }
-
-  // Save new citizen
-  const newCitizen = { name, nic, email, province, district, birthday, phone, password };
-  citizens.push(newCitizen);
-  localStorage.setItem(USER_DB_KEY, JSON.stringify(citizens));
-
-  showToast('Account created successfully! Logging you in...', 'success');
-  
-  // Auto-login: Save active session
-  const sessionUser = {
-    name: newCitizen.name,
-    email: newCitizen.email,
-    nic: newCitizen.nic,
-    phone: newCitizen.phone,
-    role: "citizen"
-  };
-  localStorage.setItem(SESSION_KEY, JSON.stringify(sessionUser));
-
-  setTimeout(() => {
-    window.location.href = 'index.html';
-  }, 1500);
 }
 
 // Main execution triggers
-initDb();
 checkExistingSession();

@@ -14,41 +14,56 @@ document.addEventListener('DOMContentLoaded', () => {
   loadUsers();
 });
 
-// Load Users
-function loadUsers() {
-  const citizens = JSON.parse(localStorage.getItem('cms_citizens') || '[]');
+// Load Users dynamically from Backend
+async function loadUsers() {
   const tableBody = document.getElementById('users-table-body');
   if (!tableBody) return;
-  
-  if (citizens.length === 0) {
-    tableBody.innerHTML = `<tr><td colspan="5" style="padding: 1rem; text-align: center; color: var(--text-muted);">No citizens registered yet.</td></tr>`;
-    return;
+
+  try {
+    const response = await fetch('http://localhost:8080/api/users', {
+      method: 'GET'
+    });
+    
+    if (response.ok) {
+      const data = await response.json();
+      const citizens = data.users || [];
+      
+      if (citizens.length === 0) {
+        tableBody.innerHTML = `<tr><td colspan="5" style="padding: 1rem; text-align: center; color: var(--text-muted);">No citizens registered yet.</td></tr>`;
+        return;
+      }
+      
+      tableBody.innerHTML = '';
+      citizens.forEach(u => {
+        tableBody.innerHTML += `
+          <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+            <td style="padding: 1rem;">${u.name}</td>
+            <td style="padding: 1rem;">${u.nic}</td>
+            <td style="padding: 1rem;">${u.email}</td>
+            <td style="padding: 1rem;">${u.phone || '-'}</td>
+            <td style="padding: 1rem;">${u.district || '-'}, ${u.province || '-'}</td>
+          </tr>
+        `;
+      });
+    } else {
+      tableBody.innerHTML = `<tr><td colspan="5" style="padding: 1rem; text-align: center; color: var(--danger);">Failed to load citizens.</td></tr>`;
+    }
+  } catch (error) {
+    console.error("Error fetching citizens:", error);
+    tableBody.innerHTML = `<tr><td colspan="5" style="padding: 1rem; text-align: center; color: var(--danger);">Network error. Backend might be down.</td></tr>`;
   }
-  
-  tableBody.innerHTML = '';
-  citizens.forEach(u => {
-    tableBody.innerHTML += `
-      <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
-        <td style="padding: 1rem;">${u.name}</td>
-        <td style="padding: 1rem;">${u.nic}</td>
-        <td style="padding: 1rem;">${u.email}</td>
-        <td style="padding: 1rem;">${u.phone || '-'}</td>
-        <td style="padding: 1rem;">${u.district || '-'}, ${u.province || '-'}</td>
-      </tr>
-    `;
-  });
 }
 
 // Verify authorization
 function checkAdminAuth() {
   const sessionData = localStorage.getItem(SESSION_KEY);
   if (!sessionData) {
-    window.location.href = 'login.html';
+    window.location.href = 'http://localhost:8000/login.html';
     return;
   }
   activeUser = JSON.parse(sessionData);
   if (activeUser.role !== 'admin') {
-    window.location.href = 'index.html';
+    window.location.href = 'http://localhost:8000/index.html';
     return;
   }
   
@@ -60,17 +75,43 @@ function checkAdminAuth() {
 // Logout session
 function logoutUser() {
   localStorage.removeItem(SESSION_KEY);
-  window.location.href = 'login.html';
+  window.location.href = 'http://localhost:8000/login.html';
 }
 
 // Fetch DB
-function loadComplaints() {
-  const saved = localStorage.getItem(COMPLAINT_DB_KEY);
-  if (saved) {
-    complaints = JSON.parse(saved);
-    complaints.sort((a, b) => new Date(b.date) - new Date(a.date));
-  } else {
+async function loadComplaints() {
+  try {
+    const response = await fetch('http://localhost:8080/api/complaints');
+    const data = await response.json();
+    if (response.ok) {
+      complaints = data.complaints.map(c => ({
+        id: c.id,
+        title: c.title,
+        category: c.category,
+        urgency: c.urgency,
+        location: c.location,
+        description: c.description,
+        date: c.created_at,
+        status: c.status,
+        timeline: {
+          submitted: c.created_at,
+          underReview: c.status === 'in progress' ? c.created_at : null,
+          inProgress: c.status === 'in progress' ? c.created_at : null,
+          resolved: c.status === 'resolved' ? c.resolved_at : null
+        },
+        adminComment: c.admin_remarks,
+        citizenId: c.citizenEmail,
+        citizenName: c.citizenName
+      }));
+      complaints.sort((a, b) => new Date(b.date) - new Date(a.date));
+    } else {
+      complaints = [];
+      showToast('Error fetching complaints', 'error');
+    }
+  } catch(e) {
+    console.error(e);
     complaints = [];
+    showToast('Network error fetching complaints', 'error');
   }
   updateStats();
   renderComplaints();
@@ -254,31 +295,29 @@ function saveComplaintUpdates() {
   const newStatus = document.getElementById('admin-status-update').value;
   const newComment = document.getElementById('admin-comment-update').value.trim();
 
-  // If status changes, update timeline
-  const now = new Date().toISOString();
-  if (complaints[cIndex].status !== newStatus) {
-    if (newStatus === 'under review' && !complaints[cIndex].timeline.underReview) {
-      complaints[cIndex].timeline.underReview = now;
-    }
-    if (newStatus === 'in progress' && !complaints[cIndex].timeline.inProgress) {
-      complaints[cIndex].timeline.inProgress = now;
-    }
-    if (newStatus === 'resolved' && !complaints[cIndex].timeline.resolved) {
-      complaints[cIndex].timeline.resolved = now;
-    }
-  }
+  const payload = {
+    status: newStatus,
+    admin_remarks: newComment
+  };
 
-  complaints[cIndex].status = newStatus;
-  complaints[cIndex].adminComment = newComment;
-
-  localStorage.setItem(COMPLAINT_DB_KEY, JSON.stringify(complaints));
-  
-  showToast('Complaint updated successfully', 'success');
-  
-  // Re-render
-  updateStats();
-  applyFilters();
-  closeDrawer();
+  fetch(`http://localhost:8080/api/complaints/${currentEditingId}`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload)
+  })
+  .then(res => {
+    if (res.ok) {
+      closeDrawer();
+      showToast('Complaint successfully updated', 'success');
+      loadComplaints(); // Reload from backend
+    } else {
+      showToast('Failed to update complaint', 'error');
+    }
+  })
+  .catch(err => {
+    console.error(err);
+    showToast('Network error updating complaint', 'error');
+  });
 }
 
 // Inline Status Update (from card buttons)

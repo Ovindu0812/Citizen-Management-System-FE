@@ -209,12 +209,17 @@
             <div class="form-row">
               <div class="form-group">
                 <label for="prof-birthday">Birthday</label>
-                <input type="date" id="prof-birthday" class="input-control" required>
+                <input type="text" id="prof-birthday" class="input-control" placeholder="YYYY-MM-DD" pattern="\d{4}-\d{2}-\d{2}" title="Please enter date as YYYY-MM-DD" required>
               </div>
               <div class="form-group">
                 <label for="prof-phone">Phone Number</label>
                 <input type="tel" id="prof-phone" class="input-control" required>
               </div>
+            </div>
+
+            <div class="form-group">
+              <label for="prof-created">Registered At (Member Since)</label>
+              <input type="text" id="prof-created" class="input-control" disabled style="opacity: 0.7; cursor: not-allowed; font-weight: bold; color: var(--primary-light);">
             </div>
 
             <button type="submit" class="btn btn-primary" style="margin-top: 0.5rem; width: 100%;">

@@ -2,6 +2,18 @@
 const SESSION_KEY = 'cms_active_session';
 const COMPLAINT_DB_KEY = 'cms_complaints';
 
+const provinceToDistricts = {
+  "Central": ["Kandy", "Matale", "Nuwara Eliya"],
+  "Eastern": ["Batticaloa", "Ampara", "Trincomalee"],
+  "North Central": ["Anuradhapura", "Polonnaruwa"],
+  "Northern": ["Jaffna", "Kilinochchi", "Mannar", "Vavuniya", "Mullaitivu"],
+  "North Western": ["Kurunegala", "Puttalam"],
+  "Sabaragamuwa": ["Ratnapura", "Kegalle"],
+  "Southern": ["Galle", "Matara", "Hambantota"],
+  "Uva": ["Badulla", "Moneragala"],
+  "Western": ["Colombo", "Gampaha", "Kalutara"]
+};
+
 // Current session data
 let activeUser = null;
 let complaints = [];
@@ -70,7 +82,7 @@ const SEED_COMPLAINTS = [
 function checkAuth() {
   const sessionData = localStorage.getItem(SESSION_KEY);
   if (!sessionData) {
-    window.location.href = 'login.html';
+    window.location.href = 'http://localhost:8000/login.html';
     return;
   }
   activeUser = JSON.parse(sessionData);
@@ -98,17 +110,50 @@ function setupUserInfo() {
   // Populate profile form if it exists
   const profName = document.getElementById('prof-name');
   if (profName) {
-    const citizens = JSON.parse(localStorage.getItem('cms_citizens') || '[]');
-    const userDetail = citizens.find(c => c.email === activeUser.email || c.nic === activeUser.nic);
-    if (userDetail) {
-      document.getElementById('prof-name').value = userDetail.name || '';
-      document.getElementById('prof-nic').value = userDetail.nic || '';
-      document.getElementById('prof-email').value = userDetail.email || '';
-      document.getElementById('prof-province').value = userDetail.province || '';
-      document.getElementById('prof-district').value = userDetail.district || '';
-      document.getElementById('prof-birthday').value = userDetail.birthday || '';
-      document.getElementById('prof-phone').value = userDetail.phone || '';
+    document.getElementById('prof-name').value = activeUser.name || '';
+    document.getElementById('prof-nic').value = activeUser.nic || '';
+    document.getElementById('prof-email').value = activeUser.email || '';
+    document.getElementById('prof-province').value = activeUser.province || '';
+    document.getElementById('prof-district').value = activeUser.district || '';
+    document.getElementById('prof-birthday').value = activeUser.birthday || '';
+    document.getElementById('prof-phone').value = activeUser.phone || '';
+    
+    // Format created_at date nicely
+    if (activeUser.created_at) {
+      const dateObj = new Date(activeUser.created_at);
+      document.getElementById('prof-created').value = dateObj.toLocaleDateString('en-GB', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+      });
+    } else {
+      document.getElementById('prof-created').value = 'Legacy User';
     }
+    
+    // Attach event listener for province cascade
+    const profProvince = document.getElementById('prof-province');
+    const profDistrict = document.getElementById('prof-district');
+    
+    // Remove existing event listener if any to prevent duplicates
+    const newProv = profProvince.cloneNode(true);
+    profProvince.parentNode.replaceChild(newProv, profProvince);
+    
+    newProv.addEventListener('change', function() {
+      const selected = this.value;
+      const districts = provinceToDistricts[selected] || [];
+      
+      // Keep only the first option or wipe out
+      profDistrict.innerHTML = '';
+      districts.forEach(d => {
+        const opt = document.createElement('option');
+        opt.value = d;
+        opt.textContent = d;
+        profDistrict.appendChild(opt);
+      });
+      // Optionally trigger change if empty, but we can just let it sit.
+    });
   }
 }
 
@@ -147,23 +192,44 @@ function updateProfile(event) {
 // Logout session
 function logoutUser() {
   localStorage.removeItem(SESSION_KEY);
-  window.location.href = 'login.html';
+  window.location.href = 'http://localhost:8000/login.html';
 }
 
 // Initialize Complaints Database
-function loadComplaints() {
-  const saved = localStorage.getItem(COMPLAINT_DB_KEY);
-  if (saved) {
-    let allComplaints = JSON.parse(saved);
-    // Filter complaints for the active citizen
-    complaints = allComplaints.filter(c => c.citizenId === activeUser.email || (!c.citizenId && activeUser.email === 'citizen@example.com'));
-    // Sort newest first
-    complaints.sort((a, b) => new Date(b.date) - new Date(a.date));
-  } else {
-    // Inject citizenId to mock seeds
-    const seeds = SEED_COMPLAINTS.map(c => ({...c, citizenId: 'citizen@example.com', citizenName: 'Jane Smith'}));
-    localStorage.setItem(COMPLAINT_DB_KEY, JSON.stringify(seeds));
-    complaints = seeds.filter(c => c.citizenId === activeUser.email);
+async function loadComplaints() {
+  try {
+    const response = await fetch(`http://localhost:8080/api/complaints/user?userId=${activeUser.id}`);
+    const data = await response.json();
+    
+    if (response.ok) {
+      complaints = data.complaints.map(c => ({
+        id: c.id,
+        title: c.title,
+        category: c.category,
+        urgency: c.urgency,
+        location: c.location,
+        description: c.description,
+        date: c.created_at,
+        status: c.status,
+        timeline: {
+          submitted: c.created_at,
+          underReview: c.status === 'in progress' ? c.created_at : null,
+          inProgress: c.status === 'in progress' ? c.created_at : null,
+          resolved: c.status === 'resolved' ? c.resolved_at : null
+        },
+        adminComment: c.admin_remarks,
+        citizenId: activeUser.email,
+        citizenName: activeUser.name
+      }));
+      sortComplaints();
+    } else {
+      complaints = [];
+      showToast('Error loading complaints', 'error');
+    }
+  } catch (err) {
+    console.error(err);
+    showToast('Network error loading complaints', 'error');
+    complaints = [];
   }
   
   updateDashboardStats();
@@ -375,9 +441,13 @@ function renderFilePreview() {
 // Deselect files
 function clearFileSelection() {
   selectedFileMock = null;
-  document.getElementById('file-input').value = '';
-  document.getElementById('file-preview-container').innerHTML = '';
-  document.getElementById('file-preview-container').style.display = 'none';
+  const fileInput = document.getElementById('file-input');
+  if (fileInput) fileInput.value = '';
+  const previewContainer = document.getElementById('file-preview-container');
+  if (previewContainer) {
+    previewContainer.innerHTML = '';
+    previewContainer.style.display = 'none';
+  }
 }
 
 // Drag & drop zones configuration
@@ -477,50 +547,36 @@ function submitComplaint(event) {
     return;
   }
 
-  // Create complaint structure
-  const now = new Date().toISOString();
-  const newComplaint = {
-    id: `CMP-${Math.floor(1000 + Math.random() * 9000)}`,
+  const payload = {
+    user_id: activeUser.id,
     title,
     category,
     urgency,
     location,
-    description,
-    date: now,
-    status: 'pending',
-    attachment: selectedFileMock,
-    timeline: {
-      submitted: now,
-      underReview: null,
-      inProgress: null,
-      resolved: null
-    },
-    adminComment: null,
-    citizenId: activeUser.email,
-    citizenName: activeUser.name
+    description
   };
 
-  // Add to local database
-  let allComplaints = JSON.parse(localStorage.getItem(COMPLAINT_DB_KEY) || '[]');
-  allComplaints.unshift(newComplaint);
-  localStorage.setItem(COMPLAINT_DB_KEY, JSON.stringify(allComplaints));
-  
-  // Add to current view
-  complaints.unshift(newComplaint);
-
-  // Reset Form
-  document.getElementById('complaint-form').reset();
-  clearFileSelection();
-  toggleNewComplaintForm();
-
-  // Update lists and counts
-  updateDashboardStats();
-  applyFilters();
-  
-  showToast(`Complaint submitted successfully under Reference: ${newComplaint.id}`, 'success');
-  
-  // Simulate active administrative feedback loops on this new complaint
-  simulateAdminResponse(newComplaint.id);
+  fetch('http://localhost:8080/api/complaints', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload)
+  })
+  .then(res => res.json())
+  .then(data => {
+    if (data.id) {
+      showToast('Complaint submitted successfully!', 'success');
+      document.getElementById('complaint-form').reset();
+      clearFileSelection();
+      toggleNewComplaintForm();
+      loadComplaints();
+    } else {
+      showToast(data.message || 'Error submitting complaint', 'error');
+    }
+  })
+  .catch(err => {
+    console.error("Submit Complaint Error:", err);
+    showToast('Network error submitting complaint', 'error');
+  });
 }
 
 // Active Side Drawer details page loading
