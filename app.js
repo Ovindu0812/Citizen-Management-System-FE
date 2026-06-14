@@ -119,6 +119,17 @@ function setupUserInfo() {
   const profName = document.getElementById('prof-name');
   if (profName) {
     document.getElementById('prof-name').value = activeUser.name || '';
+    
+    const profUsername = document.getElementById('prof-username');
+    if (profUsername) {
+      if (activeUser.username && activeUser.username !== 'Not Available') {
+        profUsername.value = activeUser.username;
+      } else {
+        profUsername.value = '';
+        profUsername.placeholder = 'Not Available';
+      }
+    }
+    
     document.getElementById('prof-nic').value = activeUser.nic || '';
     document.getElementById('prof-email').value = activeUser.email || '';
     document.getElementById('prof-province').value = activeUser.province || '';
@@ -171,6 +182,7 @@ async function updateProfile(event) {
   event.preventDefault();
   
   const name = document.getElementById('prof-name').value.trim();
+  const username = document.getElementById('prof-username') ? document.getElementById('prof-username').value.trim() : '';
   const province = document.getElementById('prof-province').value;
   const district = document.getElementById('prof-district').value;
   const birthday = document.getElementById('prof-birthday').value;
@@ -178,6 +190,7 @@ async function updateProfile(event) {
 
   const payload = {
     name,
+    username,
     province,
     district,
     birthday,
@@ -200,6 +213,7 @@ async function updateProfile(event) {
 
     if (res.ok) {
       activeUser.name = name;
+      if (username) activeUser.username = username;
       activeUser.province = province;
       activeUser.district = district;
       activeUser.birthday = birthday;
