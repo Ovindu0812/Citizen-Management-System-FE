@@ -1,6 +1,6 @@
 // Local storage keys
 const SESSION_KEY = 'cms_active_session';
-const COMPLAINT_DB_KEY = 'cms_complaints';
+const API_BASE_URL = 'http://127.0.0.1:8080/api';
 
 const provinceToDistricts = {
   "Central": ["Kandy", "Matale", "Nuwara Eliya"],
@@ -82,11 +82,19 @@ const SEED_COMPLAINTS = [
 function checkAuth() {
   const sessionData = localStorage.getItem(SESSION_KEY);
   if (!sessionData) {
-    window.location.href = 'http://localhost:8000/login.html';
+    window.location.href = 'login.html';
     return;
   }
   activeUser = JSON.parse(sessionData);
   setupUserInfo();
+}
+
+// Helper to get Auth Headers
+function getAuthHeaders() {
+  return {
+    'Content-Type': 'application/json',
+    'Authorization': `Bearer ${activeUser.id}`
+  };
 }
 
 // Populate user identity on interface
@@ -138,6 +146,7 @@ function setupUserInfo() {
     
     // Remove existing event listener if any to prevent duplicates
     const newProv = profProvince.cloneNode(true);
+    newProv.value = profProvince.value;
     profProvince.parentNode.replaceChild(newProv, profProvince);
     
     newProv.addEventListener('change', function() {
@@ -158,7 +167,7 @@ function setupUserInfo() {
 }
 
 // Profile update logic
-function updateProfile(event) {
+async function updateProfile(event) {
   event.preventDefault();
   
   const name = document.getElementById('prof-name').value.trim();
@@ -167,38 +176,60 @@ function updateProfile(event) {
   const birthday = document.getElementById('prof-birthday').value;
   const phone = document.getElementById('prof-phone').value.trim();
 
-  const citizens = JSON.parse(localStorage.getItem('cms_citizens') || '[]');
-  const userIndex = citizens.findIndex(c => c.email === activeUser.email || c.nic === activeUser.nic);
-  
-  if (userIndex !== -1) {
-    citizens[userIndex].name = name;
-    citizens[userIndex].province = province;
-    citizens[userIndex].district = district;
-    citizens[userIndex].birthday = birthday;
-    citizens[userIndex].phone = phone;
-    
-    localStorage.setItem('cms_citizens', JSON.stringify(citizens));
-    
-    // Update active session
-    activeUser.name = name;
-    activeUser.phone = phone;
-    localStorage.setItem(SESSION_KEY, JSON.stringify(activeUser));
-    
-    setupUserInfo();
-    showToast('Profile updated successfully', 'success');
+  const payload = {
+    name,
+    province,
+    district,
+    birthday,
+    phone
+  };
+
+  // Birthday validation (YYYY-MM-DD)
+  const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
+  if (!dateRegex.test(birthday)) {
+    showToast('Birthday must be in YYYY-MM-DD format', 'error');
+    return;
+  }
+
+  try {
+    const res = await fetch(`${API_BASE_URL}/users/${activeUser.id}`, {
+      method: 'PUT',
+      headers: getAuthHeaders(),
+      body: JSON.stringify(payload)
+    });
+
+    if (res.ok) {
+      activeUser.name = name;
+      activeUser.province = province;
+      activeUser.district = district;
+      activeUser.birthday = birthday;
+      activeUser.phone = phone;
+      
+      localStorage.setItem(SESSION_KEY, JSON.stringify(activeUser));
+      setupUserInfo();
+      showToast('Profile updated successfully', 'success');
+    } else {
+      const data = await res.json();
+      showToast(data.message || 'Failed to update profile', 'error');
+    }
+  } catch (err) {
+    console.error(err);
+    showToast('Network error updating profile', 'error');
   }
 }
 
 // Logout session
 function logoutUser() {
   localStorage.removeItem(SESSION_KEY);
-  window.location.href = 'http://localhost:8000/login.html';
+  window.location.href = 'login.html';
 }
 
 // Initialize Complaints Database
 async function loadComplaints() {
   try {
-    const response = await fetch(`http://localhost:8080/api/complaints/user?userId=${activeUser.id}`);
+    const response = await fetch(`${API_BASE_URL}/complaints/user?userId=${activeUser.id}`, {
+      headers: getAuthHeaders()
+    });
     const data = await response.json();
     
     if (response.ok) {
@@ -556,9 +587,9 @@ function submitComplaint(event) {
     description
   };
 
-  fetch('http://localhost:8080/api/complaints', {
+  fetch(`${API_BASE_URL}/complaints`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: getAuthHeaders(),
     body: JSON.stringify(payload)
   })
   .then(res => res.json())

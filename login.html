@@ -32,8 +32,8 @@
       <!-- Login Form -->
       <form id="login-form" class="auth-form active" onsubmit="handleLogin(event)">
         <div class="form-group">
-          <label for="login-id">Citizen ID or Email</label>
-          <input type="text" id="login-id" class="input-control" placeholder="Enter your ID or email" required>
+          <label for="login-id">Username</label>
+          <input type="text" id="login-id" class="input-control" placeholder="Enter your username" required>
         </div>
         
         <div class="form-group">
@@ -64,6 +64,11 @@
           <input type="text" id="reg-name" class="input-control" placeholder="John Doe" required>
         </div>
 
+        <div class="form-group">
+          <label for="reg-username">Username</label>
+          <input type="text" id="reg-username" class="input-control" placeholder="johndoe" required>
+        </div>
+
         <div class="form-row">
           <div class="form-group">
             <label for="reg-nic">NIC Number</label>
@@ -71,7 +76,7 @@
           </div>
           <div class="form-group">
             <label for="reg-email">Email Address</label>
-            <input type="email" id="reg-email" class="input-control" placeholder="john@example.com" required>
+            <input type="email" id="reg-email" class="input-control" placeholder="john@example.com" pattern="[a-z0-9._%+\-]+@[a-z0-9.\-]+\.[a-z]{2,}$" title="Email must be entirely in lowercase letters" required>
           </div>
         </div>
 
@@ -127,7 +132,7 @@
         <div class="form-row">
           <div class="form-group">
             <label for="reg-birthday">Birthday</label>
-            <input type="text" id="reg-birthday" class="input-control" placeholder="YYYY-MM-DD" pattern="\d{4}-\d{2}-\d{2}" title="Please enter date as YYYY-MM-DD" required>
+            <input type="text" id="reg-birthday" class="input-control" placeholder="YYYY-MM-DD" pattern="\d{4}-(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01])" title="Use YYYY-MM-DD with valid month (01-12) and day (01-31)" required>
           </div>
           <div class="form-group">
             <label for="reg-phone">Phone Number</label>

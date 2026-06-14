@@ -165,6 +165,7 @@
               <button class="filter-chip" id="filter-pending" onclick="filterByStatus('pending')">Pending</button>
               <button class="filter-chip" id="filter-progress" onclick="filterByStatus('in progress')">In Progress</button>
               <button class="filter-chip" id="filter-resolved" onclick="filterByStatus('resolved')">Resolved</button>
+              <button class="filter-chip" id="filter-rejected" onclick="filterByStatus('rejected')">Rejected</button>
             </div>
           </div>
 
@@ -193,10 +194,12 @@
               <thead>
                 <tr style="border-bottom: 1px solid rgba(255,255,255,0.1);">
                   <th style="padding: 1rem; color: var(--text-primary);">Name</th>
+                  <th style="padding: 1rem; color: var(--text-primary);">Username</th>
                   <th style="padding: 1rem; color: var(--text-primary);">NIC</th>
                   <th style="padding: 1rem; color: var(--text-primary);">Email</th>
                   <th style="padding: 1rem; color: var(--text-primary);">Phone</th>
                   <th style="padding: 1rem; color: var(--text-primary);">Location</th>
+                  <th style="padding: 1rem; color: var(--text-primary); text-align: right;">Action</th>
                 </tr>
               </thead>
               <tbody id="users-table-body">
@@ -303,12 +306,13 @@
       <!-- Admin Controls -->
       <div class="drawer-section">
         <span class="drawer-section-label">Update Status</span>
-        <select id="admin-status-update" class="input-control" style="appearance: none; background-image: url('data:image/svg+xml;charset=utf-8,%3Csvg xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22 fill%3D%22none%22 viewBox%3D%220 0 24 24%22 stroke%3D%22%239ca3af%22 stroke-width%3D%222%22%3E%3Cpath stroke-linecap%3D%22round%22 stroke-linejoin%3D%22round%22 d%3D%22M19 9l-7 7-7-7%22%2F%3E%3C%2Fsvg%3E'); background-repeat: no-repeat; background-position: right 0.75rem center; background-size: 1.25rem;">
-          <option value="pending">Pending</option>
-          <option value="under review">Under Review</option>
-          <option value="in progress">In Progress</option>
-          <option value="resolved">Resolved</option>
-        </select>
+        <div class="status-filters" id="drawer-status-buttons" style="margin-top: 0.25rem;">
+          <button type="button" class="btn btn-outline btn-status-pending" onclick="updateDrawerStatus('pending')" id="btn-pending">Pending</button>
+          <button type="button" class="btn btn-outline btn-status-progress" onclick="updateDrawerStatus('in progress')" id="btn-progress">In Progress</button>
+          <button type="button" class="btn btn-outline btn-status-resolved" onclick="updateDrawerStatus('resolved')" id="btn-resolved">Resolved</button>
+          <button type="button" class="btn btn-outline btn-status-rejected" onclick="updateDrawerStatus('rejected')" id="btn-rejected">Rejected</button>
+        </div>
+        <input type="hidden" id="admin-status-update" value="pending">
       </div>
 
       <div class="drawer-section">

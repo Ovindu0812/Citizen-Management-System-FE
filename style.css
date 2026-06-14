@@ -202,6 +202,48 @@ a:hover {
   transform: translateY(0);
 }
 
+.btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+.btn-outline {
+  background: transparent;
+  color: var(--text-muted);
+  border: 1px solid var(--border-color);
+}
+
+.btn-outline:hover {
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--text-main);
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
+.btn-status-pending.active {
+  background: var(--danger);
+  color: white;
+  border-color: var(--danger);
+}
+
+.btn-status-progress.active {
+  background: var(--warning);
+  color: white;
+  border-color: var(--warning);
+}
+
+.btn-status-resolved.active {
+  background: rgba(16, 185, 129, 0.1);
+  border-color: var(--success);
+  color: var(--success);
+}
+
+.btn-status-rejected.active {
+  background: rgba(239, 68, 68, 0.1);
+  border-color: var(--danger);
+  color: var(--danger);
+}
+
 .btn-secondary {
   background: rgba(255, 255, 255, 0.05);
   color: var(--text-main);
@@ -269,6 +311,11 @@ a:hover {
   background: var(--success-bg);
   color: var(--success);
   border: 1px solid var(--success-border);
+}
+
+.badge-rejected {
+  background: rgba(239, 68, 68, 0.1);
+  color: var(--danger);
 }
 
 .badge-priority-high {
@@ -648,7 +695,10 @@ a:hover {
 .stat-icon-total { background: rgba(99, 102, 241, 0.1); color: var(--primary); }
 .stat-icon-pending { background: rgba(239, 68, 68, 0.1); color: var(--danger); }
 .stat-icon-progress { background: rgba(245, 158, 11, 0.1); color: var(--warning); }
-.stat-icon-resolved { background: rgba(16, 185, 129, 0.1); color: var(--success); }
+.stat-icon.badge-resolved {
+  background: rgba(16, 185, 129, 0.1);
+  color: var(--success);
+}
 
 /* Dashboard Sections Configuration */
 .dashboard-sections {

@@ -1,5 +1,17 @@
 const SESSION_KEY = 'cms_active_session';
-const API_BASE_URL = 'http://localhost:8080/api/auth';
+const API_BASE_URL = 'http://127.0.0.1:8080/api';
+
+const provinceToDistricts = {
+  "Central": ["Kandy", "Matale", "Nuwara Eliya"],
+  "Eastern": ["Batticaloa", "Ampara", "Trincomalee"],
+  "North Central": ["Anuradhapura", "Polonnaruwa"],
+  "Northern": ["Jaffna", "Kilinochchi", "Mannar", "Vavuniya", "Mullaitivu"],
+  "North Western": ["Kurunegala", "Puttalam"],
+  "Sabaragamuwa": ["Ratnapura", "Kegalle"],
+  "Southern": ["Galle", "Matara", "Hambantota"],
+  "Uva": ["Badulla", "Moneragala"],
+  "Western": ["Colombo", "Gampaha", "Kalutara"]
+};
 
 // Redirect if already authenticated
 function checkExistingSession() {
@@ -7,9 +19,9 @@ function checkExistingSession() {
   if (session) {
     const user = JSON.parse(session);
     if (user.role === 'admin') {
-      window.location.href = 'http://localhost:8000/admin.html';
+      window.location.href = 'admin.html';
     } else {
-      window.location.href = 'http://localhost:8000/index.html';
+      window.location.href = 'index.html';
     }
   }
 }
@@ -85,22 +97,22 @@ function showToast(message, type = 'info') {
 async function handleLogin(event) {
   event.preventDefault();
   
-  const idOrEmail = document.getElementById('login-id').value.trim();
+  const username = document.getElementById('login-id').value.trim();
   const password = document.getElementById('login-password').value;
 
-  if (!idOrEmail || !password) {
+  if (!username || !password) {
     showToast('Please fill out all fields', 'error');
     return;
   }
 
   try {
-    console.log(`[API Request] POST ${API_BASE_URL}/login`, { idOrEmail, password });
-    const response = await fetch(`${API_BASE_URL}/login`, {
+    console.log(`[API Request] POST ${API_BASE_URL}/auth/login`, { username, password });
+    const response = await fetch(`${API_BASE_URL}/auth/login`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
       },
-      body: JSON.stringify({ idOrEmail, password })
+      body: JSON.stringify({ username, password })
     });
 
     const result = await response.json();
@@ -114,13 +126,13 @@ async function handleLogin(event) {
 
       setTimeout(() => {
         if (result.user.role === 'admin') {
-          window.location.href = 'http://localhost:8000/admin.html';
+          window.location.href = 'admin.html';
         } else {
-          window.location.href = 'http://localhost:8000/index.html';
+          window.location.href = 'index.html';
         }
       }, 1200);
     } else {
-      showToast(result.message || 'Invalid ID/Email or password', 'error');
+      showToast(result.message || 'Invalid username or password', 'error');
     }
   } catch (error) {
     console.error("Login Error:", error);
@@ -133,6 +145,7 @@ async function handleRegister(event) {
   event.preventDefault();
 
   const name = document.getElementById('reg-name').value.trim();
+  const username = document.getElementById('reg-username').value.trim();
   const nic = document.getElementById('reg-nic').value.trim();
   const email = document.getElementById('reg-email').value.trim();
   const province = document.getElementById('reg-province').value;
@@ -141,8 +154,13 @@ async function handleRegister(event) {
   const phone = document.getElementById('reg-phone').value.trim();
   const password = document.getElementById('reg-password').value;
 
-  if (!name || !nic || !email || !province || !district || !birthday || !phone || !password) {
+  if (!name || !username || !nic || !email || !province || !district || !birthday || !phone || !password) {
     showToast('All fields are required', 'error');
+    return;
+  }
+
+  if (/[A-Z]/.test(email)) {
+    showToast('Email must be entirely in lowercase letters', 'error');
     return;
   }
 
@@ -151,11 +169,18 @@ async function handleRegister(event) {
     return;
   }
 
-  const payload = { name, nic, email, province, district, birthday, phone, password };
+  // Birthday validation strict
+  const dateRegex = /^\d{4}-(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01])$/;
+  if (!dateRegex.test(birthday)) {
+    showToast('Birthday must be YYYY-MM-DD with valid month and day', 'error');
+    return;
+  }
+
+  const payload = { name, username, nic, email, province, district, birthday, phone, password };
 
   try {
-    console.log(`[API Request] POST ${API_BASE_URL}/register`, payload);
-    const response = await fetch(`${API_BASE_URL}/register`, {
+    console.log(`[API Request] POST ${API_BASE_URL}/auth/register`, payload);
+    const response = await fetch(`${API_BASE_URL}/auth/register`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
@@ -171,7 +196,7 @@ async function handleRegister(event) {
       
       // Switch back to login tab so user can log in
       setTimeout(() => {
-        document.getElementById('login-id').value = email;
+        document.getElementById('login-id').value = username;
         switchTab('login');
       }, 1500);
 
@@ -183,6 +208,27 @@ async function handleRegister(event) {
     showToast('Network error! Ensure your backend is running.', 'error');
   }
 }
+
+// Initialize dynamic district dropdown
+document.addEventListener('DOMContentLoaded', () => {
+  const regProvince = document.getElementById('reg-province');
+  const regDistrict = document.getElementById('reg-district');
+  
+  if (regProvince && regDistrict) {
+    regProvince.addEventListener('change', function() {
+      const selected = this.value;
+      const districts = provinceToDistricts[selected] || [];
+      
+      regDistrict.innerHTML = '<option value="" disabled selected>Select District</option>';
+      districts.forEach(d => {
+        const opt = document.createElement('option');
+        opt.value = d;
+        opt.textContent = d;
+        regDistrict.appendChild(opt);
+      });
+    });
+  }
+});
 
 // Main execution triggers
 checkExistingSession();
