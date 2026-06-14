@@ -164,8 +164,8 @@ async function handleRegister(event) {
     return;
   }
 
-  if (password.length < 6) {
-    showToast('Password should be at least 6 characters long', 'error');
+  if (password.length < 3) {
+    showToast('Password should be at least 3 characters long', 'error');
     return;
   }
 
