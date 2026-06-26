@@ -20,63 +20,6 @@ let complaints = [];
 let activeStatusFilter = 'all';
 let selectedFileMock = null;
 
-// Mock database seeds (used if complaints database is empty)
-const SEED_COMPLAINTS = [
-  {
-    id: "CMP-0182",
-    title: "Damaged bypass road causing traffic bottlenecks",
-    category: "Roads & Transport",
-    urgency: "High",
-    location: "Sector 4 Outer Ring Road, near Metro Exit B",
-    description: "Several massive craters have formed along the outer lane of the Ring Road. Heavy container trucks are forced to brake suddenly and swerve, causing dangerous bottlenecks during peak morning rush hours.",
-    date: "2026-06-08T09:12:00.000Z",
-    status: "resolved",
-    attachment: { name: "road_damage_photo.jpg", size: "1.2 MB", type: "image/jpeg" },
-    timeline: {
-      submitted: "2026-06-08T09:12:00.000Z",
-      underReview: "2026-06-08T14:30:00.000Z",
-      inProgress: "2026-06-09T08:15:00.000Z",
-      resolved: "2026-06-11T16:40:00.000Z"
-    },
-    adminComment: "Road construction division has filled the craters and resurfaced 150 meters of the roadway with durable hot-mix asphalt. Normal flow of traffic restored."
-  },
-  {
-    id: "CMP-0205",
-    title: "Broken streetlamp causing complete darkness",
-    category: "Public Safety",
-    urgency: "Medium",
-    location: "Oakwood Drive, behind Central Park School",
-    description: "Two streetlights near the rear school gate have been completely burnt out for over ten days. Since this area has thick foliage, it becomes pitch black after 6 PM, which is a major safety concern for kids returning from after-school sports.",
-    date: "2026-06-10T15:22:00.000Z",
-    status: "in progress",
-    attachment: null,
-    timeline: {
-      submitted: "2026-06-10T15:22:00.000Z",
-      underReview: "2026-06-11T10:05:00.000Z",
-      inProgress: "2026-06-12T09:30:00.000Z",
-      resolved: null
-    },
-    adminComment: "Work order issued to municipal electricity grids division. Maintenance truck scheduled for bulb replacement and wire harness inspect."
-  },
-  {
-    id: "CMP-0211",
-    title: "Uncollected commercial waste piled on sidewalk",
-    category: "Sanitation & Waste",
-    urgency: "Medium",
-    location: "Broad Street Market, Alleyway 3",
-    description: "Commercial food waste bags have been dumped on the public sidewalk by local market stalls. It has been sitting in the sun for 48 hours, creating terrible odors and attracting rodent infestations.",
-    date: "2026-06-12T06:14:00.000Z",
-    status: "pending",
-    attachment: null,
-    timeline: {
-      submitted: "2026-06-12T06:14:00.000Z",
-      underReview: null,
-      inProgress: null,
-      resolved: null
-    },
-    adminComment: null
-  }
-];
 
 // Verify authorization
 function checkAuth() {
@@ -737,73 +680,6 @@ function updateTimelineUI(complaint) {
     document.getElementById('step-under-review').classList.add('active');
   }
 }
-
-// Background simulation representing admin action loops
-function simulateAdminResponse(complaintId) {
-  // 1. Move to "Under Review" after 8 seconds
-  setTimeout(() => {
-    const stored = JSON.parse(localStorage.getItem(COMPLAINT_DB_KEY) || '[]');
-    const index = stored.findIndex(c => c.id === complaintId);
-    
-    if (index !== -1 && !stored[index].timeline.underReview) {
-      stored[index].timeline.underReview = new Date().toISOString();
-      localStorage.setItem(COMPLAINT_DB_KEY, JSON.stringify(stored));
-      
-      // Sync local state if drawer is open or list needs updating
-      syncSimulationState(stored);
-      showToast(`Complaint ${complaintId} is now under review.`, 'info');
-    }
-  }, 8000);
-
-  // 2. Move to "In Progress" after 20 seconds
-  setTimeout(() => {
-    const stored = JSON.parse(localStorage.getItem(COMPLAINT_DB_KEY) || '[]');
-    const index = stored.findIndex(c => c.id === complaintId);
-    
-    if (index !== -1 && stored[index].status === 'pending') {
-      stored[index].status = 'in progress';
-      stored[index].timeline.inProgress = new Date().toISOString();
-      stored[index].adminComment = "Assigned to regional dispatch crew. Dispatch crew scheduled to arrive at location shortly.";
-      localStorage.setItem(COMPLAINT_DB_KEY, JSON.stringify(stored));
-      
-      syncSimulationState(stored);
-      showToast(`Administrative action initiated for complaint ${complaintId}.`, 'info');
-    }
-  }, 20000);
-
-  // 3. Move to "Resolved" after 40 seconds
-  setTimeout(() => {
-    const stored = JSON.parse(localStorage.getItem(COMPLAINT_DB_KEY) || '[]');
-    const index = stored.findIndex(c => c.id === complaintId);
-    
-    if (index !== -1 && stored[index].status === 'in progress') {
-      stored[index].status = 'resolved';
-      stored[index].timeline.resolved = new Date().toISOString();
-      stored[index].adminComment = "Maintenance team has completed the inspection and finished repair work. The issue is marked as successfully resolved.";
-      localStorage.setItem(COMPLAINT_DB_KEY, JSON.stringify(stored));
-      
-      syncSimulationState(stored);
-      showToast(`Complaint ${complaintId} has been resolved.`, 'success');
-    }
-  }, 40000);
-}
-
-// Synchronize interface elements after background simulation changes
-function syncSimulationState(updatedData) {
-  complaints = updatedData;
-  sortComplaints();
-  updateDashboardStats();
-  applyFilters();
-
-  // If the drawer is currently open for the modified complaint, update the drawer details live!
-  const drawer = document.getElementById('complaint-drawer');
-  const openId = document.getElementById('drawer-complaint-id').textContent;
-  
-  if (drawer.classList.contains('active') && openId) {
-    openDrawer(openId);
-  }
-}
-
 // Start app sequences
 checkAuth();
 loadComplaints();
